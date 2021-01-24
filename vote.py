@@ -3,10 +3,9 @@ import getopt
 import io
 import csv
 import datetime
-import random
 import collections
 import json
-import pprint
+
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
