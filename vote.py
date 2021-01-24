@@ -16,6 +16,12 @@ gDbg = False
 gSigner = "signer@cs-hva.nl"
 
 
+def private():
+    f = open('vote.state', 'w')
+    f.write("Private Information")
+    f.close()
+
+
 def encrypt():
     with open("signer@cs-hva.nl.pub", "rb") as key_file:
         public_key = serialization.load_pem_public_key(
@@ -33,7 +39,7 @@ def encrypt():
                 label=None
             )
         )
-        f = open('vote.state', 'wb')
+        f = open('vote.state.enc', 'wb')
         f.write(encrypted)
         f.close()
         return encrypted
@@ -47,7 +53,7 @@ def decrypt():
             backend=default_backend()
         )
 
-        f = open('vote.state', 'rb')
+        f = open('vote.state.enc', 'rb')
         encrypted = f.read()
         dectext = private_key.decrypt(
             encrypted,
@@ -173,6 +179,7 @@ class Vote:
             jDct = json.load(io.open(fname, 'r'))
             self._voters = jDct['voters']
             self._casts = jDct['casts']
+            private()
             if gDbg: print('DEBUG: recovered state:', fname)
 
     def __del__(self):
@@ -182,16 +189,18 @@ class Vote:
         json.dump(jDct, io.open(fname, 'w'))
         if gDbg: print('DEBUG: saved state:', fname)
         encrypt()
+        private()
 
     def vote(self, voteId, candId):
         # Do some checks about voters and candidates
         # StudentWork {{
+
         if voteId in self._voters:
-            print('Error: Mutiple vote: {}'.format(voteId))
+            print('Error: Multiple votes: {}'.format(voteId))
             os._exit(0)
 
         # StudentWork }}
-
+        encrypt()
         now = datetime.datetime.now()
         if voteId in gVoters and candId in gCandidates:
             self._voters.append(voteId)
@@ -204,7 +213,9 @@ class Vote:
 
     def audit(self):
         save_file('audit_cand.json', json.dumps(self._casts))
-        save_file('audit_vote.json', json.dumps(self._voters))
+        # original save file without hash
+        # save_file('audit_vote.json', json.dumps(self._voters))
+        save_file('audit_vote.json', json.dumps([hash(i) for i in self._voters]))
         if gDbg: print("DEBUG: saved audit-trail")
 
     def create(self):
