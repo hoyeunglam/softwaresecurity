@@ -1,6 +1,6 @@
 # Voting Machine
 
-Voting Machine for Software Security.
+This is a Voting Machine written for the subject of Software Security on the AUAS.
 
 ## Getting Started
 
